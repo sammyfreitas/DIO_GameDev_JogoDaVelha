@@ -25,15 +25,15 @@ body {
 }
  
 .winner {
-	margin-top: 0 auto;
+    margin-top: 0 auto;
     font-size: 16px;
-	margin-left: 180px;
-	color: "blue";
+    margin-left: 180px;
+    color: "blue";
 }
 
 button {
     margin-top: 0 auto;
-	margin-left: 300px;
+    margin-left: 250px;
     width: 100px;
     height: 30px;
     background: #eee;

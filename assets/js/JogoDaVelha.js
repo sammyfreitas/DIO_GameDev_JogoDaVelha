@@ -1,127 +1,30 @@
-var gamer, winner = null;
-var gamerSelected = document.getElementById('gamer-selected');
-var winnerSelected = document.getElementById('winner-selected');
+const squares=[...document.querySelectorAll('.square')];
+const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const $=id=>document.getElementById(id);
+let board=Array(9).fill(''),current='X',active=true,startedAt=Date.now(),timerId=null,elapsed=0,errors={X:0,O:0};
+let stats=JSON.parse(localStorage.getItem('ttt-stats')||'{"X":0,"O":0,"draws":0,"matches":0,"best":0}');
 
-changePlayer('X');
+function save(){localStorage.setItem('ttt-stats',JSON.stringify(stats));renderStats()}
+function renderStats(){ $('xWins').textContent=stats.X;$('oWins').textContent=stats.O;$('draws').textContent=stats.draws;$('matches').textContent=stats.matches;$('bestScore').textContent=stats.best }
+function fmt(sec){return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`}
+function mode(){return $('gameMode').value}
+function score(){return mode()==='classic'?Math.max(0,1000-elapsed*8-(errors.X+errors.O)*75):Math.max(0,450-elapsed*5-(errors.X+errors.O)*50)}
+function updateHud(){ $('currentPlayer').textContent=current;$('currentPlayer').style.color=current==='X'?'var(--x)':'var(--o)';$('errors').textContent=errors.X+errors.O;$('xErrors').textContent=errors.X;$('oErrors').textContent=errors.O;$('points').textContent=score();$('perfTime').textContent=fmt(elapsed) }
+function startTimer(){clearInterval(timerId);startedAt=Date.now();elapsed=0;timerId=setInterval(()=>{elapsed=Math.floor((Date.now()-startedAt)/1000);if(mode()==='timed'){const left=Math.max(0,45-elapsed);$('timer').textContent=fmt(left);if(left<=0)finish(null,'Tempo esgotado!')}else $('timer').textContent=fmt(elapsed);updateHud()},250)}
+function resetRound(message='Jogador X começa. Boa partida!'){clearInterval(timerId);board.fill('');current='X';active=true;errors={X:0,O:0};squares.forEach(s=>{s.textContent='';s.className='square';s.disabled=false});$('gameMessage').textContent=message;$('timer').textContent=mode()==='timed'?'00:45':'00:00';updateHud();startTimer()}
+function invalidMove(){if(!active)return;errors[current]++;$('gameMessage').textContent=`Essa casa já está ocupada, Jogador ${current}. Erro computado.`;updateHud();navigator.vibrate?.(40)}
+function play(index){if(!active)return;if(board[index])return invalidMove();board[index]=current;const sq=squares[index];sq.textContent=current;sq.classList.add(current.toLowerCase());const combo=wins.find(c=>c.every(i=>board[i]===current));if(combo){combo.forEach(i=>squares[i].classList.add('winner'));finish(current);return}if(board.every(Boolean)){finish(null,'Deu velha!');return}current=current==='X'?'O':'X';$('gameMessage').textContent=`Agora é a vez do Jogador ${current}.`;updateHud()}
+function finish(winner,custom){if(!active)return;active=false;clearInterval(timerId);elapsed=Math.floor((Date.now()-startedAt)/1000);squares.forEach(s=>s.disabled=true);stats.matches++;let finalScore=score();if(winner){stats[winner]++;stats.best=Math.max(stats.best,finalScore);$('gameMessage').textContent=`Jogador ${winner} venceu!`;$('resultTitle').textContent=`Jogador ${winner} venceu!`;$('resultText').textContent=mode()==='classic'?`Vitória com ${finalScore} pontos. Menos tempo e menos erros rendem uma pontuação maior.`:'Você venceu antes do tempo acabar.';$('resultIcon').innerHTML='<i class="fa-solid fa-trophy"></i>'}else{stats.draws++;$('gameMessage').textContent=custom||'Empate!';$('resultTitle').textContent=custom||'Deu velha!';$('resultText').textContent='A rodada terminou sem vencedor. Que tal uma revanche?';$('resultIcon').innerHTML='<i class="fa-solid fa-handshake"></i>'}save();updateHud();$('resultStats').innerHTML=`<div><small>Tempo</small><strong>${fmt(elapsed)}</strong></div><div><small>Erros</small><strong>${errors.X+errors.O}</strong></div><div><small>Pontos</small><strong>${winner?finalScore:0}</strong></div>`;setTimeout(()=>$('resultModal').showModal(),450)}
 
-function chooseSquare(id) {
-    if (winner !== null) {
-        return;
-    }
-
-    var square = document.getElementById(id);
-    if (square.innerHTML !== '-') {
-        return;
-    }
-
-    square.innerHTML = gamer;
-    square.style.color = '#000';
-
-    if (gamer === 'X') {
-        gamer = 'O';
-    } else {
-        gamer = 'X';
-    }
-
-    changePlayer(gamer);
-    checksWinner();
-}
-
-function changePlayer(valor) {
-    gamer = valor;
-    gamerSelected.innerHTML = gamer;
-}
-
-function checksWinner() {
-    var square1 = document.getElementById(1);
-    var square2 = document.getElementById(2);
-    var square3 = document.getElementById(3);
-    var square4 = document.getElementById(4);
-    var square5 = document.getElementById(5);
-    var square6 = document.getElementById(6);
-    var square7 = document.getElementById(7);
-    var square8 = document.getElementById(8);
-    var square9 = document.getElementById(9);
-    
-    if (checkSequence(square1, square2, square3)) {
-        changesColorSquare(square1, square2, square3);
-        changeWinner(square1);
-        return;
-    }
-
-    if (checkSequence(square4, square5, square6)) {
-        changesColorSquare(square4, square5, square6);
-        changeWinner(square4);
-        return;
-    }
-
-    if (checkSequence(square7, square8, square9)) {
-        changesColorSquare(square7, square8, square9);
-        changeWinner(square7);
-        return;
-    }
-
-    if (checkSequence(square1, square4, square7)) {
-        changesColorSquare(square1, square4, square7);
-        changeWinner(square1);
-        return;
-    }
-
-    if (checkSequence(square2, square5, square8)) {
-        changesColorSquare(square2, square5, square8);
-        changeWinner(square2);
-        return;
-    }
-
-    if (checkSequence(square3, square6, square9)) {
-        changesColorSquare(square3, square6, square9);
-        changeWinner(square3);
-        return;
-    }
-
-    if (checkSequence(square1, square5, square9)) {
-        changesColorSquare(square1, square5, square9);
-        changeWinner(square1);
-        return;
-    }
-
-    if (checkSequence(square3, square5, square7)) {
-        changesColorSquare(square3, square5, square7);
-        changeWinner(square3);
-    }
-}
-
-function changeWinner(square) {
-    winner = square.innerHTML;
-    winnerSelected.innerHTML = winner;
-}
-
-function changesColorSquare(square1, square2, square3) {
-    square1.style.background = '#0f0';
-    square2.style.background = '#0f0';
-    square3.style.background = '#0f0';
-}
-
-function checkSequence(square1, square2, square3) {
-    var eigual = false;
-
-    if (square1.innerHTML !== '-' && square1.innerHTML === square2.innerHTML && square2.innerHTML === square3.innerHTML) {
-        eigual = true;
-    }
-
-    return eigual;
-}
-
-function restart() {
-    winner = null;
-    winnerSelected.innerHTML = '';
-
-    for (var i = 1; i <= 9; i++) {
-        var square = document.getElementById(i);
-        square.style.background = '#eee';
-        square.style.color = '#eee';
-        square.innerHTML = '-';
-    }
-
-    changePlayer('X');
-}
+squares.forEach(s=>s.addEventListener('click',()=>play(Number(s.dataset.index))));
+document.addEventListener('keydown',e=>{if(e.key>='1'&&e.key<='9')play(Number(e.key)-1)});
+$('restartRound').addEventListener('click',()=>resetRound('Rodada reiniciada. Jogador X começa.'));
+$('newGame').addEventListener('click',()=>resetRound('Nova partida iniciada. Jogador X começa.'));
+$('playAgain').addEventListener('click',()=>{$('resultModal').close();resetRound('Revanche iniciada. Jogador X começa!')});
+$('closeResult').addEventListener('click',()=>$('resultModal').close());
+$('gameMode').addEventListener('change',()=>{$('modeHint').textContent=mode()==='timed'?'A rodada termina quando os 45 segundos chegarem a zero.':'O cronômetro mede seu desempenho, mas não encerra a rodada.';$('timeLabel').textContent=mode()==='timed'?'Tempo restante':'Tempo';resetRound('Modo alterado. Jogador X começa.')});
+$('resetStats').addEventListener('click',()=>{if(confirm('Zerar todo o placar e a melhor pontuação?')){stats={X:0,O:0,draws:0,matches:0,best:0};save()}});
+$('themeToggle').addEventListener('click',()=>{const html=document.documentElement;const next=html.dataset.theme==='dark'?'light':'dark';html.dataset.theme=next;localStorage.setItem('ttt-theme',next);$('themeToggle').innerHTML=next==='dark'?'<i class="fa-solid fa-moon"></i>':'<i class="fa-solid fa-sun"></i>'});
+function showInfo(type){const content=type==='about'?`<div class="modal-copy"><p class="eyebrow">SOBRE O PROJETO</p><h2>Jogo da Velha renovado</h2><p>Este projeto nasceu como exercício do bootcamp JavaScript Game Developer da DIO e foi modernizado para transformar um exemplo básico de HTML, CSS e JavaScript em uma experiência de jogo mais completa, responsiva e apresentável em portfólio.</p><p>A lógica continua simples: alinhe três símbolos antes do adversário. A nova versão acrescenta modos de jogo, métricas de desempenho, placar persistente e uma interface preparada para desktop e celular.</p></div>`:`<div class="modal-copy"><p class="eyebrow">ANTES × AGORA</p><h2>O que melhorou?</h2><ul><li>Layout totalmente responsivo e identidade visual profissional.</li><li>Tema claro e escuro com preferência salva no navegador.</li><li>Modo sem limite e modo contra o relógio de 45 segundos.</li><li>Contagem de tempo, erros, partidas, empates e vitórias.</li><li>Pontuação baseada em velocidade e precisão.</li><li>Melhor pontuação e placar persistidos localmente.</li><li>Atalhos de teclado de 1 a 9 e feedback visual da vitória.</li><li>Modal de fim de jogo perguntando se deseja jogar novamente.</li></ul></div>`;$('modalContent').innerHTML=content;$('infoModal').showModal()}
+$('aboutButton').addEventListener('click',()=>showInfo('about'));$('improvementsButton').addEventListener('click',()=>showInfo('improvements'));document.querySelector('[data-close]').addEventListener('click',()=>$('infoModal').close());
+$('year').textContent=new Date().getFullYear();const savedTheme=localStorage.getItem('ttt-theme')||'dark';document.documentElement.dataset.theme=savedTheme;$('themeToggle').innerHTML=savedTheme==='dark'?'<i class="fa-solid fa-moon"></i>':'<i class="fa-solid fa-sun"></i>';renderStats();resetRound();

@@ -1,50 +1,127 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <title>Jogo da Velha</title>
-
-    <link rel="stylesheet" href="./assets/css/style.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Jogo da Velha renovado por Anthony Freitas, com modos de partida, pontuação e tema claro/escuro.">
+  <title>Jogo da Velha | Anthony Freitas</title>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body>
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="Ir para o início">
+      <span class="brand-mark">AF</span>
+      <span><strong>Anthony Freitas</strong><small>Game Lab</small></span>
+    </a>
+    <nav class="socials" aria-label="Links de Anthony Freitas">
+      <a href="https://github.com/sammyfreitas" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><i class="fa-brands fa-github"></i></a>
+      <a href="https://sammyfreitas.github.io/portfolio/" target="_blank" rel="noopener" aria-label="Portfólio" title="Portfólio"><i class="fa-solid fa-briefcase"></i></a>
+      <a href="mailto:tonysdefreitas@gmail.com" aria-label="E-mail" title="E-mail"><i class="fa-solid fa-envelope"></i></a>
+      <button class="icon-button" id="themeToggle" aria-label="Alternar tema" title="Alternar tema"><i class="fa-solid fa-moon"></i></button>
+    </nav>
+  </header>
 
-    <h2>Jogo da Velha by Sammy Freitas</h2>
-	<span class="gamer">
-        <label>&nbsp&nbsp&nbsp&nbsp&nbsp&nbspJogador: </label><label id="gamer-selected"></label>
-		
-	<span class="winner">	
-		<label>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspVencedor: </label><label id="winner-selected"></label></div>
-		<button onclick="restart()">Reiniciar</button>
-	</div>
+  <main id="inicio" class="page-shell">
+    <section class="intro">
+      <div>
+        <p class="eyebrow">PROJETO · JAVASCRIPT GAME DEVELOPER</p>
+        <h1>Três casas. Duas estratégias. <span>Uma vitória.</span></h1>
+        <p class="lead">Uma releitura do clássico Jogo da Velha, agora com modos de partida, estatísticas, pontuação por desempenho e interface responsiva.</p>
+      </div>
+      <button class="ghost-button" id="aboutButton"><i class="fa-regular fa-circle-question"></i> Sobre o projeto</button>
+    </section>
 
-    <div>
-        <div id="1" class="square" onclick="chooseSquare(this.id)">-</div>
-        <div id="2" class="square" onclick="chooseSquare(this.id)">-</div>
-        <div id="3" class="square" onclick="chooseSquare(this.id)">-</div>
+    <section class="game-layout" aria-label="Área do jogo">
+      <aside class="panel setup-panel">
+        <div class="panel-title"><span>Configuração</span><i class="fa-solid fa-sliders"></i></div>
+        <label class="field-label" for="gameMode">Modo de partida</label>
+        <select id="gameMode">
+          <option value="classic">Sem limite de tempo</option>
+          <option value="timed">Contra o relógio · 45s</option>
+        </select>
+        <p class="hint" id="modeHint">O cronômetro mede seu desempenho, mas não encerra a rodada.</p>
+
+        <div class="mini-stats">
+          <div><small>Partidas</small><strong id="matches">0</strong></div>
+          <div><small>Empates</small><strong id="draws">0</strong></div>
+        </div>
+
+        <div class="scoreboard">
+          <div class="player-score x-score"><span>Jogador X</span><strong id="xWins">0</strong><small>vitórias</small></div>
+          <div class="player-score o-score"><span>Jogador O</span><strong id="oWins">0</strong><small>vitórias</small></div>
+        </div>
+
+        <button class="secondary-button" id="resetStats"><i class="fa-solid fa-rotate-left"></i> Zerar placar</button>
+      </aside>
+
+      <section class="game-card">
+        <div class="status-row">
+          <div><small>Vez de</small><strong class="turn-badge" id="currentPlayer">X</strong></div>
+          <div><small id="timeLabel">Tempo</small><strong id="timer">00:00</strong></div>
+          <div><small>Erros</small><strong id="errors">0</strong></div>
+          <div><small>Pontos</small><strong id="points">0</strong></div>
+        </div>
+
+        <div class="message" id="gameMessage" aria-live="polite">Jogador X começa. Boa partida!</div>
+
+        <div class="board" id="board" role="grid" aria-label="Tabuleiro do Jogo da Velha">
+          <button class="square" data-index="0" aria-label="Casa 1"></button>
+          <button class="square" data-index="1" aria-label="Casa 2"></button>
+          <button class="square" data-index="2" aria-label="Casa 3"></button>
+          <button class="square" data-index="3" aria-label="Casa 4"></button>
+          <button class="square" data-index="4" aria-label="Casa 5"></button>
+          <button class="square" data-index="5" aria-label="Casa 6"></button>
+          <button class="square" data-index="6" aria-label="Casa 7"></button>
+          <button class="square" data-index="7" aria-label="Casa 8"></button>
+          <button class="square" data-index="8" aria-label="Casa 9"></button>
+        </div>
+
+        <div class="game-actions">
+          <button class="primary-button" id="newGame"><i class="fa-solid fa-play"></i> Nova partida</button>
+          <button class="secondary-button" id="restartRound"><i class="fa-solid fa-arrow-rotate-right"></i> Reiniciar rodada</button>
+        </div>
+        <p class="keyboard-tip"><i class="fa-regular fa-keyboard"></i> Dica: use as teclas 1–9 para marcar as casas.</p>
+      </section>
+
+      <aside class="panel performance-panel">
+        <div class="panel-title"><span>Desempenho</span><i class="fa-solid fa-chart-simple"></i></div>
+        <div class="performance-item"><span>Tempo da rodada</span><strong id="perfTime">00:00</strong></div>
+        <div class="performance-item"><span>Erros do X</span><strong id="xErrors">0</strong></div>
+        <div class="performance-item"><span>Erros do O</span><strong id="oErrors">0</strong></div>
+        <div class="performance-item"><span>Melhor pontuação</span><strong id="bestScore">0</strong></div>
+        <div class="divider"></div>
+        <p class="scoring-title">Como a pontuação funciona?</p>
+        <p class="hint">No modo sem limite, a vitória parte de 1.000 pontos. Tempo e jogadas inválidas reduzem o resultado. Quanto mais rápido e preciso, maior a pontuação.</p>
+        <button class="text-link" id="improvementsButton">O que mudou nesta versão? <i class="fa-solid fa-arrow-right"></i></button>
+      </aside>
+    </section>
+
+    <div class="legacy-link"><a href="./versao-anterior/index.html">Ver versão original do projeto <i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
+  </main>
+
+  <footer>
+    <p>© <span id="year"></span> Todos os Direitos Reservados · <a href="https://sammyfreitas.github.io/portfolio/" target="_blank" rel="noopener">Anthony Freitas</a></p>
+    <p class="footer-note">Projeto educacional · HTML, CSS e JavaScript</p>
+  </footer>
+
+  <dialog id="infoModal">
+    <button class="modal-close" data-close aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+    <div id="modalContent"></div>
+  </dialog>
+
+  <dialog id="resultModal" class="result-modal">
+    <div class="result-icon" id="resultIcon"><i class="fa-solid fa-trophy"></i></div>
+    <h2 id="resultTitle">Fim de jogo!</h2>
+    <p id="resultText"></p>
+    <div class="result-stats" id="resultStats"></div>
+    <div class="modal-actions">
+      <button class="primary-button" id="playAgain"><i class="fa-solid fa-rotate-right"></i> Jogar novamente</button>
+      <button class="secondary-button" id="closeResult">Agora não</button>
     </div>
+  </dialog>
 
-    <div>
-        <div id="4" class="square" onclick="chooseSquare(this.id)">-</div>
-        <div id="5" class="square" onclick="chooseSquare(this.id)">-</div>
-        <div id="6" class="square" onclick="chooseSquare(this.id)">-</div>
-    </div>
-
-    <div>
-        <div id="7" class="square" onclick="chooseSquare(this.id)">-</div>
-        <div id="8" class="square" onclick="chooseSquare(this.id)">-</div>
-        <div id="9" class="square" onclick="chooseSquare(this.id)">-</div>
-    </div>
-
-    <footer>
-        <p>&#174Todos os direitos reservados - Desenvolvido por <a href="https://sammyfreitas.github.io/portfolioSite/" target="_blank">Samantha Freitas</a> - Desenvolvedora Front-End<br>Projeto desenvolvido no curso "Criando seu próprio jogo da velha com HTML e Javascript"<br>do Bootcamp JavaScript Game Developer da <a href="https://digitalinnovation.one/" target="_blank">Digital Innovation One</a><br>Email para contato: <a href="mailto:sammyfreitas@gmail.com?subject=Fale Conosco ">sammyfreitas@gmail.com</a>
-    </footer>
-	
-	
-	
-	
+  <script src="./assets/js/JogoDaVelha.js"></script>
 </body>
-
-<script src="./assets/js/JogoDaVelha.js"></script>
-
 </html>
